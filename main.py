@@ -1,42 +1,36 @@
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.textinput import TextInput
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-import threading
+name: Compilar APK de Android
 
-class ViralClipperApp(App):
-    def build(self):
-        self.title = "Auto Viral Clipper"
-        layout = BoxLayout(orientation='vertical', padding=40, spacing=20)
-        
-        self.label = Label(text='[b]Auto Viral Clipper[/b]', markup=True, font_size=24, size_hint_y=None, height=50)
-        layout.add_widget(self.label)
-        
-        self.url_input = TextInput(hint_text='Pega el link del video o stream...', size_hint_y=None, height=55, multiline=False)
-        layout.add_widget(self.url_input)
-        
-        self.btn = Button(text='Generar Clips Virales (9:16)', size_hint_y=None, height=65, background_color=(0.1, 0.6, 0.9, 1))
-        self.btn.bind(on_press=self.iniciar_proceso)
-        layout.add_widget(self.btn)
-        
-        self.status_label = Label(text='Estado: Listo para recibir enlaces.', font_size=16)
-        layout.add_widget(self.status_label)
-        
-        return layout
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
 
-    def iniciar_proceso(self, instance):
-        url = self.url_input.text.strip()
-        if not url:
-            self.status_label.text = '¡Por favor ingresa una URL válida!'
-            return
-        
-        self.status_label.text = 'Procesando video en segundo plano...'
-        threading.Thread(target=self.procesar_video_thread, args=(url,)).start()
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-    def procesar_video_thread(self, url):
-        # Simulación de proceso de IA / Recorte para la interfaz móvil
-        self.status_label.text = '¡Clips generados y guardados con éxito!'
+    steps:
+      - name: Descargar Código
+        uses: actions/checkout@v4
 
-if __name__ == '__main__':
-    ViralClipperApp().run()
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar Dependencias del Sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          pip install --upgrade pip
+          pip install "Cython<3.0.0" buildozer
+
+      - name: Compilar APK con Buildozer
+        run: |
+          buildozer -v android debug
+
+      - name: Subir APK Generado como Artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoViralClipper-APK
+          path: bin/*.apk
