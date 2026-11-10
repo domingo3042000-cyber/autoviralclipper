@@ -20,8 +20,9 @@ jobs:
 
       - name: Instalar Dependencias del Sistema
         run: |
+          sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+          sudo apt-get install -y build-essential ccache git libncurses5:i386 libstdc++6:i386 libz1:i386 openjdk-17-jdk unzip zlib1g-dev python3-pip autoconf libtool pkg-config cmake libffi-dev libssl-dev
           pip install --upgrade pip
           pip install "Cython<3.0.0" buildozer
 
